@@ -2,6 +2,7 @@ use std::{fs, thread};
 use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
 use std::time::Duration;
+use rust_server::ThreadPool;
 
 const HOST: &str = "0.0.0.0";
 const PORT: &str = "8081";
@@ -10,11 +11,12 @@ fn main() {
     println!("Server is up...");
     let addr = format!("{}:{}", HOST, PORT);
     let listener = TcpListener::bind(addr).unwrap();
+    let pool = ThreadPool::new(5);
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        thread::spawn(|| {
+        pool.execute(|| {
             handle_connection(stream);
         });
     }
