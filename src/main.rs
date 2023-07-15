@@ -34,12 +34,10 @@ fn handle_connection(mut stream: TcpStream) {
         .strip_suffix(" HTTP/1.1")
         .unwrap();
 
-    let (status, doc) =
-        if request_path == "GET /" {
-            (format!("{http_version} {ok}"), "assets/index.html")
-        } else {
-            (format!("{http_version} {not_found}"), "assets/404.html")
-        };
+    let (status, doc) = match &request_path[..] {
+        "GET /" => (format!("{http_version} {ok}"), "assets/index.html"),
+        _ => (format!("{http_version} {not_found}"), "assets/404.html")
+    };
 
     let contents = fs::read_to_string(doc).unwrap();
     let length = contents.len();
