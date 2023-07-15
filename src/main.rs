@@ -1,6 +1,7 @@
-use std::fs;
+use std::{fs, thread};
 use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
+use std::time::Duration;
 
 const HOST: &str = "0.0.0.0";
 const PORT: &str = "8081";
@@ -12,7 +13,10 @@ fn main() {
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
-        handle_connection(stream);
+
+        thread::spawn(|| {
+            handle_connection(stream);
+        });
     }
 }
 
@@ -36,6 +40,10 @@ fn handle_connection(mut stream: TcpStream) {
 
     let (status, doc) = match &request_path[..] {
         "GET /" => (format!("{http_version} {ok}"), "assets/index.html"),
+        "GET /slow" => {
+            thread::sleep(Duration::from_secs(10));
+            (format!("{http_version} {ok}"), "assets/index.html")
+        }
         _ => (format!("{http_version} {not_found}"), "assets/404.html")
     };
 
