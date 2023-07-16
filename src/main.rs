@@ -7,16 +7,31 @@ use rust_server::ThreadPool;
 const HOST: &str = "0.0.0.0";
 const PORT: &str = "8081";
 
-fn main() {
-    println!("Server is up...");
-    let addr = format!("{}:{}", HOST, PORT);
-    let listener = TcpListener::bind(addr).unwrap();
-    let pool = ThreadPool::new(5);
+struct Server {
+    addr: String,
+    listener: TcpListener,
+    pool: ThreadPool,
+}
 
-    for stream in listener.incoming() {
+impl Server {
+    fn new() -> Server {
+        let pool = ThreadPool::new(5);
+        let addr = format!("{}:{}", HOST, PORT);
+        println!("Server is up...");
+        Server {
+            addr: addr.to_owned(),
+            listener: TcpListener::bind(addr).unwrap(),
+            pool,
+        }
+    }
+}
+
+fn main() {
+    let server = Server::new();
+    for stream in server.listener.incoming() {
         let stream = stream.unwrap();
 
-        pool.execute(|| {
+        server.pool.execute(|| {
             handle_connection(stream);
         });
     }
